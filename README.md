@@ -1,70 +1,48 @@
-# Getting Started with Create React App
+# NauticStock
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Description 
+It is an application designed to optimize inventory management in the Mexican Navy, specifically at its base in Manzanillo, Colima. This platform automates the registration, tracking, and replenishment of consumable supplies, replacing traditional manual methods with an efficient digital system.
 
-## Available Scripts
+## Objective 
+The main objective of NauticStock is to improve accuracy, reduce administrative errors, and streamline decision-making by integrating modern technologies such as React.js, Node.js, and MySQL. Additionally, the system includes automated alerts to notify critical inventory levels, enabling proactive and efficient management."
 
-In the project directory, you can run:
+### Features
+- AI for Shortage Control: Automatic prediction of resource or supply shortages based on usage history and available stock levels.
 
-### `npm start`
+- Smart Alerts: The AI will send early notifications if it detects a potential shortage, allowing users to take preventive actions.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+ ## Technologies
+ ###  Frontend
+ - [React.js](https://reactjs.org).
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+###  Backend
+ - [Node.js](https://nodejs.org).
 
-### `npm test`
+###  Database
+ - [MySQL](https://www.mysql.com).
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+ ## **Installation**
 
-### `npm run build`
+- Clone the repository
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+  git clone https://github.com/user/repo-name.git
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- Install dependencies
+```bash
+  npm install
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- Set up the database: 
+    - Make sure you have a running MySQL server and execute the necessary migrations.
 
-### `npm run eject`
+- Run the backend
+```bash
+  node server.js
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Start the frontend application
+```bash
+  npm start
+```
