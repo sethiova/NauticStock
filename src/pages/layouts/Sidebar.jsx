@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+
 import "react-pro-sidebar/dist/css/styles.css";
 import { Token } from "../../theme";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
@@ -17,16 +18,17 @@ import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
 
-const Item = ({ title, to, icon, selected, setSelected }) => {
+const Item = ({ title, to, icon }) => {
   const theme = useTheme();
   const colors = Token(theme.palette.mode);
+  const location = useLocation();
+  const isActive = location.pathname === to;
   return (
     <MenuItem
-      active={selected === title}
+      active={isActive}
       style={{
         color: colors.grey[100],
       }}
-      onClick={() => setSelected(title)}
       icon={icon}
     >
       <Typography>{title}</Typography>
@@ -39,7 +41,6 @@ const Sidebar = () => {
   const theme = useTheme();
   const colors = Token(theme.palette.mode);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [selected, setSelected] = useState("Dashboard");
 
   return (
     <Box
@@ -63,7 +64,6 @@ const Sidebar = () => {
     >
       <ProSidebar collapsed={isCollapsed}>
         <Menu iconShape="square">
-          {/* LOGO AND MENU ICON */}
           <MenuItem
             onClick={() => setIsCollapsed(!isCollapsed)}
             icon={isCollapsed ? <MenuOutlinedIcon /> : undefined}
@@ -82,7 +82,7 @@ const Sidebar = () => {
                 <Typography variant="h3" color={colors.grey[100]}>
                   NauticStock
                 </Typography>
-                <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
+                <IconButton onClick={() => setIsCollapsed(!isCollapsed)} aria-label="toggle sidebar">
                   <MenuOutlinedIcon />
                 </IconButton>
               </Box>
@@ -93,10 +93,10 @@ const Sidebar = () => {
             <Box mb="25px">
               <Box display="flex" justifyContent="center" alignItems="center">
                 <img
-                  alt="profile-user"
+                  alt="profile-pic"
                   width="100px"
                   height="100px"
-                  src={`../../assets/profile/Cali.png`}
+                  src={`../../assets/profile/default.png`}
                   style={{ cursor: "pointer", borderRadius: "50%" }}
                 />
               </Box>
@@ -113,8 +113,6 @@ const Sidebar = () => {
               title="Dashboard"
               to="/"
               icon={<HomeOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
             />
 
             <Typography
@@ -125,25 +123,19 @@ const Sidebar = () => {
               Management
             </Typography>
             <Item
-              title="Manage Team"
+              title="Equipo de Trabajo"
               to="/team"
               icon={<PeopleOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
             />
             <Item
-              title="Products"
+              title="Productos" 
               to="/products"
               icon={<InventoryIcon />}
-              selected={selected}
-              setSelected={setSelected}
             />
             <Item
-              title="Providers"
+              title="Proveedores"
               to="/providers"
               icon={<LocalShippingIcon />}
-              selected={selected}
-              setSelected={setSelected}
             />
 
             <Typography
@@ -154,25 +146,19 @@ const Sidebar = () => {
               Pages
             </Typography>
             <Item
-              title="Profile Form"
-              to="/form"
+              title="Crear Usuario"
+              to="/createUser"
               icon={<PersonOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
             />
             <Item
-              title="Calendar"
+              title="Calendario"
               to="/calendar"
               icon={<CalendarTodayOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
             />
             <Item
-              title="FAQ Page"
+              title="Preguntas Frecuentes"
               to="/faq"
               icon={<HelpOutlineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
             />
 
             <Typography
@@ -184,31 +170,23 @@ const Sidebar = () => {
             </Typography>
             <Item
               title="Bar Chart"
-              to="/bar"
+              to="/"
               icon={<BarChartOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
             />
             <Item
               title="Pie Chart"
-              to="/pie"
+              to="/"
               icon={<PieChartOutlineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
             />
             <Item
               title="Line Chart"
-              to="/line"
+              to="/"
               icon={<TimelineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
             />
             <Item
               title="Geography Chart"
-              to="/geography"
+              to="/"
               icon={<MapOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
             />
           </Box>
         </Menu>

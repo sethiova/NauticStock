@@ -9,6 +9,8 @@ import Dashboard from "./pages/dashboard";
 import Team from "./pages/team";
 import Products from "./pages/products";
 import Providers from "./pages/providers";
+import Profile from "./pages/profile";
+import CreateUser from "./pages/createUser";
 
 
 function App() {
@@ -26,6 +28,8 @@ function App() {
               <Route path="/team" element={<Team />} />
               <Route path="/products" element={<Products />} />
               <Route path="/providers" element={<Providers />} />
+              <Route path="/createUser" element={<CreateUser />} />
+              <Route path="/profile" element={<Profile />} />
             </Routes>
           </main>
         </div>
