@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "body-parser": "^1.20.0",
+    "express": "^4.18.2",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@fullcalendar/core": "^6.1.15",
@@ -34,16 +36,20 @@
     "yup": "^1.6.1"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "node server.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "dev": "concurrently \"react-scripts start\" \"node server.js\""
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
     ]
+  },
+  "devDependencies": {
+    "concurrently": "^7.0.0"
   },
   "browserslist": {
     "production": [
@@ -56,5 +62,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+    
   }
 }
