@@ -10,7 +10,7 @@ const CreateUser = () => {
   const handleFormSubmit = async (values) => {
     try {
       // Ajusta la URL a la ruta de tu servidor
-      const response = await fetch("http://localhost:3001/users", {
+      const response = await fetch("http://localhost:3000/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
