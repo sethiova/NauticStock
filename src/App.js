@@ -33,6 +33,7 @@ export default function App() {
           <Routes>
             {/* Ruta pública */}
             <Route path="/login" element={<Login />} />
+              <Route path="dashboard" element={<Dashboard />} />
 
             {/* Rutas privadas envueltas por AuthLayout */}
             <Route
@@ -47,7 +48,7 @@ export default function App() {
               <Route index element={<Navigate to="dashboard" replace />} />
 
               {/* Accesibles para todo usuario logueado */}
-              <Route path="dashboard" element={<Dashboard />} />
+            
               <Route path="products" element={<Products />} />
               <Route path="providers" element={<Providers />} />
               <Route path="profile" element={<Profile />} />
