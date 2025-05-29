@@ -1,6 +1,6 @@
 // pages/login.jsx
 import React, { useState, useContext } from "react";
-import axios from "../api/axiosClient";
+import api from "../api/axiosClient";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -46,12 +46,12 @@ const Login = () => {
     }
 
     try {
-      const { data } = await axios.post("/login", { email, password });
+      const { data } = await api.post("/login", { email, password });
       // guardar token y datos del usuario
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       // configurar axios para enviar el token en futuras peticiones
-      axios.defaults.headers.common[
+      api.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${data.token}`;
 

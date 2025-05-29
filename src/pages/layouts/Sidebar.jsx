@@ -19,6 +19,8 @@ import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutl
 import TimelineOutlinedIcon        from "@mui/icons-material/TimelineOutlined";
 import MapOutlinedIcon             from "@mui/icons-material/MapOutlined";
 import MenuOutlinedIcon            from "@mui/icons-material/MenuOutlined";
+import HistoryOutlinedIcon         from "@mui/icons-material/HistoryOutlined";
+import AddIcon                     from "@mui/icons-material/Add"; // 👈 NUEVO ICONO
 
 import defaultPic from "../../assets/default.png";
 
@@ -148,6 +150,13 @@ export default function Sidebar() {
             )}
             <Item title="Productos"      to="/products"     icon={<InventoryIcon />} />
             <Item title="Proveedores"    to="/providers"    icon={<LocalShippingIcon />} />
+            {isAdmin && (
+              <Item
+                title="Historial"
+                to="/history"
+                icon={<HistoryOutlinedIcon />}
+              />
+            )}
 
             <Typography
               variant="h6"
@@ -161,6 +170,14 @@ export default function Sidebar() {
                 title="Crear Usuario"
                 to="/createUser"
                 icon={<PersonOutlinedIcon />}
+              />
+            )}
+            {/* 👇 NUEVO: Crear Producto - Solo para admins */}
+            {isAdmin && (
+              <Item
+                title="Crear Producto"
+                to="/createProduct"
+                icon={<AddIcon />}
               />
             )}
             <Item
