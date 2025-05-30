@@ -22,7 +22,10 @@ import {
 import { 
   Add as AddIcon, 
   Edit as EditIcon, 
-  Delete as DeleteIcon 
+  Delete as DeleteIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
+  Restore as RestoreIcon
 } from "@mui/icons-material";
 import Header from "../../components/Header";
 import { Token } from "../../theme";
@@ -34,12 +37,12 @@ import api from "../../api/axiosClient";
 export default function Categories() {
   const theme = useTheme();
   const colors = Token(theme.palette.mode);
-  
-  const [categories, setCategories] = useState([]);
+    const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [formData, setFormData] = useState({ name: "", description: "" });
+  const [showDisabled, setShowDisabled] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -72,13 +75,14 @@ export default function Categories() {
       );
     });
   }, [categories, isSearching, searchTerm]);
-
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [showDisabled]);
+  
   const fetchCategories = async () => {
     try {
-      const { data } = await api.get("/api/categories");
+      const endpoint = showDisabled ? "/api/categories/all/disabled" : "/api/categories";
+      const { data } = await api.get(endpoint);
       // Asegurar que siempre sea un array
       const categoriesData = Array.isArray(data) ? data : data?.data || [];
       setCategories(categoriesData);
@@ -159,6 +163,21 @@ export default function Categories() {
     setDeleteDialog({ open: false, categoryId: null, categoryName: '' });
   };
 
+  const handleEnable = async (id, name) => {
+    try {
+      await api.put(`/api/categories/${id}/enable`);
+      showSnackbar(`Categoría "${name}" rehabilitada exitosamente`);
+      fetchCategories();
+    } catch (error) {
+      const message = error.response?.data?.error || "Error al rehabilitar la categoría";
+      showSnackbar(message, "error");
+    }
+  };
+
+  const toggleShowDisabled = () => {
+    setShowDisabled(!showDisabled);
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
       year: 'numeric',
@@ -181,9 +200,16 @@ export default function Categories() {
       <Header
         title="Gestión de Categorías"
         subtitle={`${categories.length} categorías | ${filteredCategories.length} mostradas`}
-      />
-
-      <Box display="flex" justifyContent="flex-end" mb="20px">
+      />      <Box display="flex" justifyContent="space-between" alignItems="center" mb="20px">
+        <Button
+          variant="outlined"
+          startIcon={showDisabled ? <VisibilityOffIcon /> : <VisibilityIcon />}
+          onClick={toggleShowDisabled}
+          sx={{ px: 3, py: 1.5 }}
+        >
+          {showDisabled ? "Ocultar Deshabilitadas" : "Mostrar Deshabilitadas"}
+        </Button>
+        
         <Button
           variant="contained"
           color="secondary"
@@ -213,12 +239,18 @@ export default function Categories() {
                 <Typography variant="h6" fontWeight="bold">
                   Creada
                 </Typography>
-              </TableCell>
-              <TableCell>
+              </TableCell>              <TableCell>
                 <Typography variant="h6" fontWeight="bold">
                   Actualizada
                 </Typography>
               </TableCell>
+              {showDisabled && (
+                <TableCell>
+                  <Typography variant="h6" fontWeight="bold">
+                    Estado
+                  </Typography>
+                </TableCell>
+              )}
               <TableCell align="center">
                 <Typography variant="h6" fontWeight="bold">
                   Acciones
@@ -269,27 +301,50 @@ export default function Categories() {
                   <Typography variant="body2" color="textSecondary">
                     {formatDate(category.created_at)}
                   </Typography>
-                </TableCell>
-                <TableCell>
+                </TableCell>                <TableCell>
                   <Typography variant="body2" color="textSecondary">
                     {formatDate(category.updated_at)}
                   </Typography>
-                </TableCell>                <TableCell align="center">
-                  <IconButton
-                    onClick={() => handleOpen(category)}
-                    color="warning"
-                    size="small"
-                    sx={{ mr: 1 }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => handleDelete(category.id, category.name)}
-                    color="error"
-                    size="small"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                </TableCell>
+                {showDisabled && (
+                  <TableCell>
+                    <Chip
+                      label={category.status === 0 ? "Activa" : "Deshabilitada"}
+                      color={category.status === 0 ? "success" : "error"}
+                      variant="filled"
+                      size="small"
+                    />
+                  </TableCell>
+                )}
+                <TableCell align="center">
+                  {category.status === 0 ? (
+                    <>
+                      <IconButton
+                        onClick={() => handleOpen(category)}
+                        color="warning"
+                        size="small"
+                        sx={{ mr: 1 }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDelete(category.id, category.name)}
+                        color="error"
+                        size="small"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </>
+                  ) : (
+                    <IconButton
+                      onClick={() => handleEnable(category.id, category.name)}
+                      color="success"
+                      size="small"
+                      title="Rehabilitar categoría"
+                    >
+                      <RestoreIcon />
+                    </IconButton>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

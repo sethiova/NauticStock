@@ -21,7 +21,10 @@ import { Token } from "../../theme";
 
 const schema = yup.object().shape({
   name: yup.string().required("Requerido"),
-  account: yup.string().required("Requerido"),
+  account: yup.string()
+    .required("Requerido")
+    .matches(/^\d+$/, "La matrícula solo debe contener números")
+    .max(10, "La matrícula no puede tener más de 10 caracteres"),
   email: yup.string().email("Inválido").required("Requerido"),
   ranks: yup.string().required("Requerido"),
   roleId: yup.number().required("Rol es requerido"),
@@ -288,17 +291,26 @@ const EditUser = () => {
                   error={!!touched.name && !!errors.name}
                   helperText={touched.name && errors.name}
                 />
-                
-                <TextField
+                  <TextField
                   fullWidth 
                   variant="filled" 
                   label="Matrícula"
                   name="account" 
                   onBlur={handleBlur} 
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    // Solo permitir números y máximo 10 caracteres
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    e.target.value = value;
+                    handleChange(e);
+                  }}
                   value={values.account}
                   error={!!touched.account && !!errors.account}
                   helperText={touched.account && errors.account}
+                  inputProps={{
+                    inputMode: 'numeric',
+                    pattern: '[0-9]*',
+                    maxLength: 10
+                  }}
                 />
                 
                 <TextField

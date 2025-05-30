@@ -75,6 +75,42 @@ class Category extends Model {
       throw error;
     }
   }
+
+  // Obtener todas las categorías (activas e inactivas)
+  async getAllCategories() {
+    try {
+      const query = 'SELECT * FROM categories ORDER BY status ASC, name ASC';
+      const db = this.getDB();
+      const rows = await db.execute(query);
+      return rows;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Rehabilitar categoría
+  async enableCategory(id) {
+    try {
+      const query = 'UPDATE categories SET status = 0, updated_at = NOW() WHERE id = ?';
+      const db = this.getDB();
+      const result = await db.execute(query, [id]);
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Obtener categoría por ID (incluyendo deshabilitadas)
+  async getCategoryByIdAll(id) {
+    try {
+      const query = 'SELECT * FROM categories WHERE id = ?';
+      const db = this.getDB();
+      const rows = await db.execute(query, [id]);
+      return rows[0] || null;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = Category;

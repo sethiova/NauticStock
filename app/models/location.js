@@ -77,6 +77,42 @@ class Location extends Model {
       throw error;
     }
   }
+
+  // Obtener todas las ubicaciones (activas e inactivas)
+  async getAllLocations() {
+    try {
+      const query = 'SELECT * FROM locations ORDER BY name ASC';
+      const db = this.getDB();
+      const rows = await db.execute(query);
+      return rows;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Rehabilitar ubicación
+  async enableLocation(id) {
+    try {
+      const query = 'UPDATE locations SET status = 0, updated_at = NOW() WHERE id = ?';
+      const db = this.getDB();
+      const result = await db.execute(query, [id]);
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Obtener ubicación por ID (incluyendo deshabilitadas)
+  async getLocationByIdAll(id) {
+    try {
+      const query = 'SELECT * FROM locations WHERE id = ?';
+      const db = this.getDB();
+      const rows = await db.execute(query, [id]);
+      return rows[0] || null;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = Location;
