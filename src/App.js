@@ -3,8 +3,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { ColorModeContext, useMode } from "./theme";
 import { SearchProvider } from './contexts/SearchContext';
-import { AccessibilityProvider } from './contexts/AccessibilityContext';
-import './styles/accessibility.css';
 
 import PrivateRoute from "./components/PrivateRoute";
 import AdminRoute from "./components/AdminRoute";

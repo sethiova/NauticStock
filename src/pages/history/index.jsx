@@ -148,7 +148,6 @@ const filteredRows = useMemo(() => {
       return () => clearInterval(intervalId);
     }
   }, [isAuthenticated, isAdmin]);
-
   // Función helper para obtener el color de la acción
   const getActionColor = (accion) => {
     const actionLower = accion.toLowerCase();
@@ -164,10 +163,22 @@ const filteredRows = useMemo(() => {
           'usuario eliminado': '#e57373',
           'usuario habilitado': '#4fc3f7',
           'usuario deshabilitado': '#f06292',
+          'usuario rehabilitado': '#4fc3f7',
+          'rol cambiado': '#ce93d8',
+          'contraseña cambiada': '#ffd54f',
+          'contraseña propia cambiada': '#ffcc02',
           'producto creado': '#81c784',
           'producto actualizado': '#fff176',
           'producto eliminado': '#e57373',
           'stock actualizado': '#ba68c8',
+          // 🆕 NUEVOS: Colores para categorías (tonos azules)
+          'categoría creada': '#4fc3f7',
+          'categoría actualizada': '#29b6f6',
+          'categoría eliminada': '#e1f5fe',
+          // 🆕 NUEVOS: Colores para ubicaciones (tonos naranjas)
+          'ubicación creada': '#ffab40',
+          'ubicación actualizada': '#ff9800',
+          'ubicación eliminada': '#ff7043',
           'crear': '#81c784',
           'actualizar': '#fff176',
           'eliminar': '#e57373',
@@ -180,16 +191,28 @@ const filteredRows = useMemo(() => {
           'login': '#1976d2',
           'logout': '#f57c00',
           'usuario creado': '#388e3c',
-          'usuario actualizado': '#f57f17', // ✅ Amarillo más oscuro
+          'usuario actualizado': '#f57f17',
           'usuario eliminado': '#d32f2f',
           'usuario habilitado': '#0288d1',
           'usuario deshabilitado': '#c2185b',
+          'usuario rehabilitado': '#0288d1',
+          'rol cambiado': '#8e24aa',
+          'contraseña cambiada': '#f9a825',
+          'contraseña propia cambiada': '#ff8f00',
           'producto creado': '#388e3c',
-          'producto actualizado': '#f57f17', // ✅ Amarillo más oscuro
+          'producto actualizado': '#f57f17',
           'producto eliminado': '#d32f2f',
           'stock actualizado': '#7b1fa2',
+          // 🆕 NUEVOS: Colores para categorías (tonos azules)
+          'categoría creada': '#0277bd',
+          'categoría actualizada': '#0288d1',
+          'categoría eliminada': '#0277bd',
+          // 🆕 NUEVOS: Colores para ubicaciones (tonos naranjas)
+          'ubicación creada': '#ef6c00',
+          'ubicación actualizada': '#f57c00',
+          'ubicación eliminada': '#e64a19',
           'crear': '#388e3c',
-          'actualizar': '#f57f17', // ✅ Amarillo más oscuro
+          'actualizar': '#f57f17',
           'eliminar': '#d32f2f',
           'habilitar': '#0288d1',
           'deshabilitar': '#c2185b',
@@ -251,9 +274,28 @@ const filteredRows = useMemo(() => {
       field: 'accion', 
       headerName: 'Acción', 
       width: 160,
-      flex: 0.7,
-      renderCell: (params) => {
+      flex: 0.7,      renderCell: (params) => {
         const actionColor = getActionColor(params.value);
+        const actionLower = params.value.toLowerCase();
+        
+        // Iconos para diferentes tipos de acciones
+        const getActionIcon = () => {
+          if (actionLower.includes('creado') || actionLower.includes('crear')) return '➕';
+          if (actionLower.includes('actualizado') || actionLower.includes('actualizar')) return '✏️';
+          if (actionLower.includes('eliminado') || actionLower.includes('eliminar')) return '🗑️';
+          if (actionLower.includes('deshabilitado')) return '🚫';
+          if (actionLower.includes('rehabilitado') || actionLower.includes('habilitado')) return '✅';
+          if (actionLower.includes('login')) return '🔐';
+          if (actionLower.includes('logout')) return '🚪';
+          if (actionLower.includes('contraseña')) return '🔑';
+          if (actionLower.includes('rol')) return '👤';
+          if (actionLower.includes('categoría')) return '🏷️';
+          if (actionLower.includes('ubicación')) return '📍';
+          if (actionLower.includes('producto')) return '📦';
+          if (actionLower.includes('stock')) return '📊';
+          return '📝';
+        };
+
         return (
           <Box sx={{ 
             display: 'flex',
@@ -262,21 +304,32 @@ const filteredRows = useMemo(() => {
           }}>
             <Box sx={{
               backgroundColor: theme.palette.mode === 'dark' 
-                ? `${actionColor}20` // 20% opacity en modo oscuro
-                : `${actionColor}15`, // 15% opacity en modo claro
+                ? `${actionColor}25` // 25% opacity en modo oscuro
+                : `${actionColor}20`, // 20% opacity en modo claro
               color: actionColor,
-              padding: '4px 8px',
-              borderRadius: '12px',
+              padding: '6px 12px',
+              borderRadius: '16px',
               fontSize: '0.875rem',
-              fontWeight: 'bold',
-              border: `1px solid ${actionColor}60`, // ✅ Borde más visible
+              fontWeight: '600',
+              border: `2px solid ${actionColor}60`,
               minWidth: 'fit-content',
               textAlign: 'center',
-              // ✅ Sombra para mejor legibilidad
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              // Mejorar la sombra y el contraste
               boxShadow: theme.palette.mode === 'light' 
-                ? `0 1px 3px ${actionColor}30`
-                : 'none'
+                ? `0 2px 4px ${actionColor}25, 0 1px 2px ${actionColor}15`
+                : `0 1px 3px rgba(0,0,0,0.3)`,
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-1px)',
+                boxShadow: theme.palette.mode === 'light' 
+                  ? `0 4px 8px ${actionColor}30, 0 2px 4px ${actionColor}20`
+                  : `0 2px 6px rgba(0,0,0,0.4)`
+              }
             }}>
+              <span style={{ fontSize: '0.75rem' }}>{getActionIcon()}</span>
               <SearchHighlighter 
                 text={params.value} 
                 searchTerm={searchTerm}
@@ -403,43 +456,26 @@ const filteredRows = useMemo(() => {
         sx={{
           "& .MuiDataGrid-root": {
             border: "none",
+          },          "& .MuiDataGrid-row": {
+            minHeight: '60px !important',
+            borderBottom: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+            transition: 'all 0.2s ease-in-out',
+            "&:hover": {
+              backgroundColor: theme.palette.mode === 'dark' 
+               ? 'rgba(255, 255, 255, 0.08) !important'
+               : 'rgba(0, 0, 0, 0.04) !important',
+              transform: 'translateX(2px)',
+              boxShadow: theme.palette.mode === 'dark'
+                ? '2px 0 8px rgba(255,255,255,0.1)'
+                : '2px 0 8px rgba(0,0,0,0.1)',
+            },
           },
           "& .MuiDataGrid-cell": {
             borderBottom: "none",
             display: 'flex',
             alignItems: 'center',
-            padding: '8px',
-          },
-          "& .name-column--cell": {
-            color: safeColors.greenAccent?.[300] || '#4caf50',
-            fontWeight: 'bold'
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: safeColors.blueAccent?.[700] || '#1976d2',
-            borderBottom: "none",
-            fontSize: '0.95rem',
-            fontWeight: 'bold'
-          },
-          "& .MuiDataGrid-virtualScroller": {
-            backgroundColor: safeColors.primary?.[400] || '#f5f5f5',
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: "none",
-            backgroundColor: safeColors.blueAccent?.[700] || '#1976d2',
-          },
-          "& .MuiCheckbox-root": {
-            color: `${safeColors.greenAccent?.[200] || '#4caf50'} !important`,
-          },
-          "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-            color: `${safeColors.grey?.[100] || '#ffffff'} !important`,
-          },
-          "& .MuiDataGrid-row": {
-            minHeight: '60px !important',
-            "&:hover": {
-              backgroundColor: theme.palette.mode === 'dark' 
-               ? 'rgba(255, 255, 255, 0.08) !important'  // Hover claro para modo oscuro
-               : 'rgba(0, 0, 0, 0.04) !important',       // Hover oscuro para modo claro
-            },
+            padding: '12px 8px',
+            transition: 'all 0.2s ease-in-out',
           },
           // Responsividad
           [theme.breakpoints.down('md')]: {
