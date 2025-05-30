@@ -6,8 +6,11 @@ const isAdmin = require('../middleware/isAdmin');
 
 const categoryController = new CategoryController();
 
-// Obtener todas las categorías (cualquier usuario autenticado)
+// Obtener todas las categorías activas (cualquier usuario autenticado)
 router.get('/', auth, categoryController.getCategories.bind(categoryController));
+
+// Obtener todas las categorías incluyendo deshabilitadas (solo administradores)
+router.get('/all/disabled', auth, isAdmin, categoryController.getAllCategories.bind(categoryController));
 
 // Obtener categoría por ID (cualquier usuario autenticado)
 router.get('/:id', auth, categoryController.getCategoryById.bind(categoryController));
@@ -18,7 +21,10 @@ router.post('/', auth, isAdmin, categoryController.createCategory.bind(categoryC
 // Actualizar categoría (solo administradores)
 router.put('/:id', auth, isAdmin, categoryController.updateCategory.bind(categoryController));
 
-// Eliminar categoría (solo administradores)
+// Rehabilitar categoría (solo administradores)
+router.put('/:id/enable', auth, isAdmin, categoryController.enableCategory.bind(categoryController));
+
+// Eliminar/Deshabilitar categoría (solo administradores)
 router.delete('/:id', auth, isAdmin, categoryController.deleteCategory.bind(categoryController));
 
 module.exports = router;

@@ -50,11 +50,22 @@ class UserController extends Controller {
       throw err;
     }
   }
-
   /** Crear usuario */
   async register(data, performed_by) {
     if (!data || Object.keys(data).length === 0) {
       throw { status: 400, message: "Datos no pueden estar vacíos" };
+    }
+
+    // Validar campo matrícula (account)
+    if (data.account) {
+      // Solo números
+      if (!/^\d+$/.test(data.account)) {
+        throw { status: 400, message: "La matrícula solo debe contener números" };
+      }
+      // Máximo 10 caracteres
+      if (data.account.length > 10) {
+        throw { status: 400, message: "La matrícula no puede tener más de 10 caracteres" };
+      }
     }
 
     // 1) Verificar duplicado de email
@@ -83,6 +94,18 @@ class UserController extends Controller {
 async update(id, data, performed_by) {
   if (!id || typeof data !== "object") {
     throw new Error("Datos inválidos para actualización");
+  }
+
+  // Validar campo matrícula (account) si se está actualizando
+  if (data.account) {
+    // Solo números
+    if (!/^\d+$/.test(data.account)) {
+      throw { status: 400, message: "La matrícula solo debe contener números" };
+    }
+    // Máximo 10 caracteres
+    if (data.account.length > 10) {
+      throw { status: 400, message: "La matrícula no puede tener más de 10 caracteres" };
+    }
   }
   
   // 1) Lee estado previo

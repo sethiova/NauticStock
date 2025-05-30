@@ -153,6 +153,57 @@ class LocationController extends Controller {
       res.status(500).json({ error: 'Error interno del servidor' });
     }
   }
+
+  // Obtener todas las ubicaciones (incluyendo deshabilitadas) - solo para admin
+  async getAllLocations(req, res) {
+    try {
+      console.log('🔍 LocationController.getAllLocations llamado');
+      console.log('🔍 Usuario autenticado:', req.user?.id);
+      
+      const locations = await this.locationModel.getAllLocations();
+      console.log('✅ Todas las ubicaciones obtenidas:', locations.length, 'registros');
+      
+      res.json(locations);
+    } catch (error) {
+      console.error('❌ Error obteniendo todas las ubicaciones:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  }
+
+  // Rehabilitar ubicación
+  async enableLocation(req, res) {
+    try {
+      const { id } = req.params;
+
+      // Verificar si existe (incluyendo deshabilitadas)
+      const existingLocation = await this.locationModel.getLocationByIdAll(id);
+      if (!existingLocation) {
+        return res.status(404).json({ error: 'Ubicación no encontrada' });
+      }
+
+      // Verificar si ya está habilitada
+      if (existingLocation.status === 0) {
+        return res.status(400).json({ error: 'La ubicación ya está habilitada' });
+      }
+
+      await this.locationModel.enableLocation(id);
+
+      // Registrar en historial
+      await this.historyModel.registerLog({
+        action_type: 'Ubicación Rehabilitada',
+        performed_by: req.user.id,
+        old_value: JSON.stringify(existingLocation),
+        new_value: JSON.stringify({ ...existingLocation, status: 0 }),
+        description: `Rehabilitó ubicación ${existingLocation.name}`
+      });
+
+      res.json({ message: 'Ubicación rehabilitada exitosamente' });
+
+    } catch (error) {
+      console.error('Error rehabilitando ubicación:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  }
 }
 
 module.exports = LocationController;

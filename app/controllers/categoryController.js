@@ -153,6 +153,57 @@ class CategoryController extends Controller {
       res.status(500).json({ error: 'Error interno del servidor' });
     }
   }
+
+  // Obtener todas las categorías (incluyendo deshabilitadas) - solo para admin
+  async getAllCategories(req, res) {
+    try {
+      console.log('🔍 CategoryController.getAllCategories llamado');
+      console.log('🔍 Usuario autenticado:', req.user?.id);
+      
+      const categories = await this.categoryModel.getAllCategories();
+      console.log('✅ Todas las categorías obtenidas:', categories.length, 'registros');
+      
+      res.json(categories);
+    } catch (error) {
+      console.error('❌ Error obteniendo todas las categorías:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  }
+
+  // Rehabilitar categoría
+  async enableCategory(req, res) {
+    try {
+      const { id } = req.params;
+
+      // Verificar si existe (incluyendo deshabilitadas)
+      const existingCategory = await this.categoryModel.getCategoryByIdAll(id);
+      if (!existingCategory) {
+        return res.status(404).json({ error: 'Categoría no encontrada' });
+      }
+
+      // Verificar si ya está habilitada
+      if (existingCategory.status === 0) {
+        return res.status(400).json({ error: 'La categoría ya está habilitada' });
+      }
+
+      await this.categoryModel.enableCategory(id);
+
+      // Registrar en historial
+      await this.historyModel.registerLog({
+        action_type: 'Categoría Rehabilitada',
+        performed_by: req.user.id,
+        old_value: JSON.stringify(existingCategory),
+        new_value: JSON.stringify({ ...existingCategory, status: 0 }),
+        description: `Rehabilitó categoría ${existingCategory.name}`
+      });
+
+      res.json({ message: 'Categoría rehabilitada exitosamente' });
+
+    } catch (error) {
+      console.error('Error rehabilitando categoría:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  }
 }
 
 module.exports = CategoryController;

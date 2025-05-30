@@ -23,7 +23,10 @@ import {
   Add as AddIcon, 
   Edit as EditIcon, 
   Delete as DeleteIcon,
-  LocationOn as LocationIcon
+  LocationOn as LocationIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
+  Restore as RestoreIcon
 } from "@mui/icons-material";
 import Header from "../../components/Header";
 import { Token } from "../../theme";
@@ -35,12 +38,13 @@ import api from "../../api/axiosClient";
 export default function Locations() {
   const theme = useTheme();
   const colors = Token(theme.palette.mode);
-  
-  const [locations, setLocations] = useState([]);
+    const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
-  const [formData, setFormData] = useState({ name: "", description: "" });  const [snackbar, setSnackbar] = useState({
+  const [formData, setFormData] = useState({ name: "", description: "" });
+  const [showDisabled, setShowDisabled] = useState(false);
+  const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
@@ -72,13 +76,14 @@ export default function Locations() {
       );
     });
   }, [locations, isSearching, searchTerm]);
-
   useEffect(() => {
     fetchLocations();
-  }, []);
+  }, [showDisabled]);
+  
   const fetchLocations = async () => {
     try {
-      const { data } = await api.get("/api/locations");
+      const endpoint = showDisabled ? "/api/locations/all/disabled" : "/api/locations";
+      const { data } = await api.get(endpoint);
       // Asegurar que siempre sea un array
       const locationsData = Array.isArray(data) ? data : data?.data || [];
       setLocations(locationsData);
@@ -160,6 +165,21 @@ export default function Locations() {
     setDeleteDialog({ open: false, locationId: null, locationName: '' });
   };
 
+  const handleEnable = async (id, name) => {
+    try {
+      await api.put(`/api/locations/${id}/enable`);
+      showSnackbar(`Ubicación "${name}" rehabilitada exitosamente`);
+      fetchLocations();
+    } catch (error) {
+      const message = error.response?.data?.error || "Error al rehabilitar la ubicación";
+      showSnackbar(message, "error");
+    }
+  };
+
+  const toggleShowDisabled = () => {
+    setShowDisabled(!showDisabled);
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
       year: 'numeric',
@@ -182,9 +202,16 @@ export default function Locations() {
     <Box m="20px">      <Header
         title="Gestión de Ubicaciones"
         subtitle={`Administra las ubicaciones del almacén (${filteredLocations.length} ubicaciones)`}
-      />
-
-      <Box display="flex" justifyContent="flex-end" mb="20px">
+      />      <Box display="flex" justifyContent="space-between" alignItems="center" mb="20px">
+        <Button
+          variant="outlined"
+          startIcon={showDisabled ? <VisibilityOffIcon /> : <VisibilityIcon />}
+          onClick={toggleShowDisabled}
+          sx={{ px: 3, py: 1.5 }}
+        >
+          {showDisabled ? "Ocultar Deshabilitadas" : "Mostrar Deshabilitadas"}
+        </Button>
+        
         <Button
           variant="contained"
           color="secondary"
@@ -214,12 +241,18 @@ export default function Locations() {
                 <Typography variant="h6" fontWeight="bold">
                   Creada
                 </Typography>
-              </TableCell>
-              <TableCell>
+              </TableCell>              <TableCell>
                 <Typography variant="h6" fontWeight="bold">
                   Actualizada
                 </Typography>
               </TableCell>
+              {showDisabled && (
+                <TableCell>
+                  <Typography variant="h6" fontWeight="bold">
+                    Estado
+                  </Typography>
+                </TableCell>
+              )}
               <TableCell align="center">
                 <Typography variant="h6" fontWeight="bold">
                   Acciones
@@ -275,27 +308,49 @@ export default function Locations() {
                   <Typography variant="body2" color="textSecondary">
                     {formatDate(location.created_at)}
                   </Typography>
-                </TableCell>
-                <TableCell>
+                </TableCell>                <TableCell>
                   <Typography variant="body2" color="textSecondary">
                     {formatDate(location.updated_at)}
                   </Typography>
-                </TableCell>                <TableCell align="center">
-                  <IconButton
-                    onClick={() => handleOpen(location)}
-                    color="warning"
-                    size="small"
-                    sx={{ mr: 1 }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => handleDelete(location.id, location.name)}
-                    color="error"
-                    size="small"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                </TableCell>
+                {showDisabled && (
+                  <TableCell>
+                    <Chip
+                      label={location.status === 0 ? "Activa" : "Deshabilitada"}
+                      color={location.status === 0 ? "success" : "error"}
+                      variant="filled"
+                      size="small"
+                    />
+                  </TableCell>
+                )}
+                <TableCell align="center">
+                  {location.status === 0 ? (
+                    <>
+                      <IconButton
+                        onClick={() => handleOpen(location)}
+                        color="warning"
+                        size="small"
+                        sx={{ mr: 1 }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDelete(location.id, location.name)}
+                        color="error"
+                        size="small"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </>
+                  ) : (
+                    <IconButton
+                      onClick={() => handleEnable(location.id, location.name)}
+                      color="success"
+                      size="small"
+                      title="Rehabilitar ubicación"
+                    >                      <RestoreIcon />
+                    </IconButton>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
