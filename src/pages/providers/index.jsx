@@ -10,6 +10,14 @@ import SearchHighlighter from '../../components/SearchHighlighter'; // 👈 NUEV
 const Providers = () => {
   const theme = useTheme();
   const colors = Token(theme.palette.mode);
+
+  const safeColors = colors || {
+    primary: { 400: '#f5f5f5', 300: '#424242' },
+    greenAccent: { 300: '#4caf50', 200: '#4caf50' },
+    blueAccent: { 700: '#1976d2' },
+    grey: { 100: '#f5f5f5', 100: '#ffffff' }
+  };
+  
   
   // 👇 NUEVO: Contexto de búsqueda
   const { searchTerm, isSearching } = useSearch();
@@ -200,7 +208,9 @@ const Providers = () => {
           "& .MuiDataGrid-row": {
             minHeight: '60px !important',
             "&:hover": {
-              backgroundColor: colors.primary[300] + "!important",
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.08) !important'  // Hover claro para modo oscuro
+                : 'rgba(0, 0, 0, 0.04) !important',       // Hover oscuro para modo claro
             },
           },
         }}

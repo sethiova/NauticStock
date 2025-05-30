@@ -79,65 +79,83 @@ class UserController extends Controller {
     return id;
   }
 
-   /** Actualizar usuario (incluye cambio de contraseña y deshabilitar) */
-  async update(id, data, performed_by) {
-    if (!id || typeof data !== "object") {
-      throw new Error("Datos inválidos para actualización");
-    }
-    
-    // 1) Lee estado previo
-    const old = await this.userModel.findById(id);
-
-    // 2) Ejecuta update
-    const result = await this.userModel.updateUser(id, data);
-
-    // 3) Determina tipo de acción
-    let action_type = "Usuario Actualizado";
-    let description = `Actualizó datos de usuario ${id}`;
-    
-    if (data.password) {
-      action_type = "Contraseña Cambiada";
-      description = `Cambió contraseña de usuario ${id}`;
-    }
-    
-    if ("status" in data && data.status === 1) {
-      action_type = "Usuario Deshabilitado";
-      description = `Deshabilitó usuario ${id}`;
-      
-      // 👇 NUEVO: Log adicional para facilitar auditoría
-      console.log(`🚫 Usuario ${id} deshabilitado por ${performed_by}`);
-    }
-    
-    if ("status" in data && data.status === 0) {
-      action_type = "Usuario Rehabilitado";
-      description = `Rehabilitó usuario ${id}`;
-      
-      // 👇 NUEVO: Log adicional para facilitar auditoría
-      console.log(`✅ Usuario ${id} rehabilitado por ${performed_by}`);
-    }
-
-    // 4) Prepara old_value / new_value solo con campos modificados
-    const old_value = {};
-    const new_value = {};
-    for (const field of ["name", "email", "account", "ranks", "status"]) {
-      if (field in data) {
-        old_value[field] = old[field];
-        new_value[field] = data[field];
-      }
-    }
-
-    // 5) Log de la acción
-    await historyModel.registerLog({
-      action_type,
-      performed_by,
-      target_user: id,
-      old_value:  Object.keys(old_value).length ? old_value : null,
-      new_value:  Object.keys(new_value).length ? new_value : null,
-      description
-    });
-
-    return result;
+/** Actualizar usuario (incluye cambio de contraseña, deshabilitar y cambio de rol) */
+async update(id, data, performed_by) {
+  if (!id || typeof data !== "object") {
+    throw new Error("Datos inválidos para actualización");
   }
+  
+  // 1) Lee estado previo
+  const old = await this.userModel.findById(id);
+  if (!old) {
+    throw { status: 404, message: "Usuario no encontrado" };
+  }
+
+  // 2) Ejecuta update
+  const result = await this.userModel.updateUser(id, data);
+
+  // 3) Determina tipo de acción
+  let action_type = "Usuario Actualizado";
+  let description = `Actualizó datos de usuario ${id}`;
+  
+  if (data.password) {
+    action_type = "Contraseña Cambiada";
+    description = `Cambió contraseña de usuario ${id}`;
+  }
+  
+  if ("status" in data && data.status === 1) {
+    action_type = "Usuario Deshabilitado";
+    description = `Deshabilitó usuario ${id}`;
+    console.log(`🚫 Usuario ${id} deshabilitado por ${performed_by}`);
+  }
+  
+  if ("status" in data && data.status === 0) {
+    action_type = "Usuario Rehabilitado";
+    description = `Rehabilitó usuario ${id}`;
+    console.log(`✅ Usuario ${id} rehabilitado por ${performed_by}`);
+  }
+
+  // 👇 NUEVO: Detectar cambio de rol
+  if ("roleId" in data && data.roleId !== old.roleId) {
+    action_type = "Rol Cambiado";
+    const oldRoleName = this.getRoleName(old.roleId);
+    const newRoleName = this.getRoleName(data.roleId);
+    description = `Cambió rol de usuario ${id} de ${oldRoleName} a ${newRoleName}`;
+    console.log(`🔄 Usuario ${id}: rol cambiado de ${oldRoleName} a ${newRoleName} por ${performed_by}`);
+  }
+
+  // 4) Prepara old_value / new_value solo con campos modificados
+  const old_value = {};
+  const new_value = {};
+  for (const field of ["name", "email", "account", "ranks", "status", "roleId"]) { // 👈 Agregar roleId
+    if (field in data) {
+      old_value[field] = old[field];
+      new_value[field] = data[field];
+    }
+  }
+
+  // 5) Log de la acción
+  await historyModel.registerLog({
+    action_type,
+    performed_by,
+    target_user: id,
+    old_value:  Object.keys(old_value).length ? old_value : null,
+    new_value:  Object.keys(new_value).length ? new_value : null,
+    description
+  });
+
+  return result;
+}
+
+// 👇 NUEVO: Método helper para obtener nombre del rol
+getRoleName(roleId) {
+  switch(parseInt(roleId)) {
+    case 1: return "Administrador";
+    case 2: return "Capturista";
+    case 3: return "Consultor";
+    default: return "Desconocido";
+  }
+}
 
   /** Eliminar usuario */
   async delete(id, performed_by) {

@@ -2,7 +2,9 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { ColorModeContext, useMode } from "./theme";
-import { SearchProvider } from './contexts/SearchContext'; // 👈 AGREGAR ESTE IMPORT
+import { SearchProvider } from './contexts/SearchContext';
+import { AccessibilityProvider } from './contexts/AccessibilityContext';
+import './styles/accessibility.css';
 
 import PrivateRoute from "./components/PrivateRoute";
 import AdminRoute from "./components/AdminRoute";
@@ -19,6 +21,8 @@ import EditUser from "./pages/editUser";
 import History    from "./pages/history";
 import CreateProduct from "./pages/createProduct";
 import EditProduct from "./pages/editProduct";
+import Categories from "./pages/categories";
+import Locations from "./pages/locations";
 
 export default function App() {
   const [theme, ColorMode] = useMode();
@@ -33,7 +37,6 @@ export default function App() {
           <Routes>
             {/* Ruta pública */}
             <Route path="/login" element={<Login />} />
-              <Route path="dashboard" element={<Dashboard />} />
 
             {/* Rutas privadas envueltas por AuthLayout */}
             <Route
@@ -48,7 +51,7 @@ export default function App() {
               <Route index element={<Navigate to="dashboard" replace />} />
 
               {/* Accesibles para todo usuario logueado */}
-            
+              <Route path="dashboard" element={<Dashboard />} />
               <Route path="products" element={<Products />} />
               <Route path="providers" element={<Providers />} />
               <Route path="profile" element={<Profile />} />
@@ -93,12 +96,27 @@ export default function App() {
                     <CreateProduct />
                   </AdminRoute>
                 }
-              />
-              <Route
+              />              <Route
                 path="products/:id/edit"
                 element={
                   <AdminRoute>
                     <EditProduct />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="categories"
+                element={
+                  <AdminRoute>
+                    <Categories />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="locations"
+                element={
+                  <AdminRoute>
+                    <Locations />
                   </AdminRoute>
                 }
               />

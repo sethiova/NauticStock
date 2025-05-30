@@ -24,7 +24,13 @@ const History = () => {
   const { searchTerm, isSearching } = useSearch();
 
   // Manejo seguro de colores con fallbacks
-  const safeColors = colors || {};
+  const safeColors = colors || {
+    primary: { 400: '#f5f5f5', 300: '#424242' },
+    greenAccent: { 300: '#4caf50', 200: '#4caf50' },
+    blueAccent: { 700: '#1976d2' },
+    grey: { 100: '#f5f5f5', 100: '#ffffff' }
+  };
+  
 
   // 👇 CORREGIR el filteredRows useMemo
 const filteredRows = useMemo(() => {
@@ -145,18 +151,59 @@ const filteredRows = useMemo(() => {
 
   // Función helper para obtener el color de la acción
   const getActionColor = (accion) => {
-    const actionColors = {
-      'Login': safeColors.blueAccent?.[400] || '#2196f3',
-      'Logout': safeColors.orangeAccent?.[400] || '#ff9800',
-      'Usuario Creado': safeColors.greenAccent?.[400] || '#4caf50',
-      'Usuario Actualizado': safeColors.yellowAccent?.[400] || '#ffeb3b',
-      'Usuario Eliminado': safeColors.redAccent?.[400] || '#f44336',
-      'Producto Creado': safeColors.greenAccent?.[400] || '#4caf50',
-      'Producto Actualizado': safeColors.yellowAccent?.[400] || '#ffeb3b',
-      'Producto Eliminado': safeColors.redAccent?.[400] || '#f44336',
-    };
+    const actionLower = accion.toLowerCase();
     
-    return actionColors[accion] || safeColors.grey?.[400] || '#9e9e9e';
+    // Colores adaptativos según el tema actual
+    const actionColors = theme.palette.mode === 'dark' 
+      ? {
+          // MODO OSCURO - Colores más claros y vibrantes
+          'login': '#64b5f6',
+          'logout': '#ffb74d', 
+          'usuario creado': '#81c784',
+          'usuario actualizado': '#fff176',
+          'usuario eliminado': '#e57373',
+          'usuario habilitado': '#4fc3f7',
+          'usuario deshabilitado': '#f06292',
+          'producto creado': '#81c784',
+          'producto actualizado': '#fff176',
+          'producto eliminado': '#e57373',
+          'stock actualizado': '#ba68c8',
+          'crear': '#81c784',
+          'actualizar': '#fff176',
+          'eliminar': '#e57373',
+          'habilitar': '#4fc3f7',
+          'deshabilitar': '#f06292',
+          'default': '#90a4ae'
+        }
+      : {
+          // MODO CLARO - Colores más oscuros y contrastantes
+          'login': '#1976d2',
+          'logout': '#f57c00',
+          'usuario creado': '#388e3c',
+          'usuario actualizado': '#f57f17', // ✅ Amarillo más oscuro
+          'usuario eliminado': '#d32f2f',
+          'usuario habilitado': '#0288d1',
+          'usuario deshabilitado': '#c2185b',
+          'producto creado': '#388e3c',
+          'producto actualizado': '#f57f17', // ✅ Amarillo más oscuro
+          'producto eliminado': '#d32f2f',
+          'stock actualizado': '#7b1fa2',
+          'crear': '#388e3c',
+          'actualizar': '#f57f17', // ✅ Amarillo más oscuro
+          'eliminar': '#d32f2f',
+          'habilitar': '#0288d1',
+          'deshabilitar': '#c2185b',
+          'default': '#616161'
+        };
+
+    // Buscar coincidencias en el texto de la acción
+    for (const [key, color] of Object.entries(actionColors)) {
+      if (actionLower.includes(key)) {
+        return color;
+      }
+    }
+    
+    return actionColors.default;
   };
 
   // Memoizar columnas para evitar re-renders
@@ -214,15 +261,22 @@ const filteredRows = useMemo(() => {
             height: '100%'
           }}>
             <Box sx={{
-              backgroundColor: actionColor + '20', // 20% opacity
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? `${actionColor}20` // 20% opacity en modo oscuro
+                : `${actionColor}15`, // 15% opacity en modo claro
               color: actionColor,
               padding: '4px 8px',
               borderRadius: '12px',
               fontSize: '0.875rem',
               fontWeight: 'bold',
-              border: `1px solid ${actionColor}40`
+              border: `1px solid ${actionColor}60`, // ✅ Borde más visible
+              minWidth: 'fit-content',
+              textAlign: 'center',
+              // ✅ Sombra para mejor legibilidad
+              boxShadow: theme.palette.mode === 'light' 
+                ? `0 1px 3px ${actionColor}30`
+                : 'none'
             }}>
-              {/* 👇 NUEVO: Resaltar acción */}
               <SearchHighlighter 
                 text={params.value} 
                 searchTerm={searchTerm}
@@ -382,7 +436,9 @@ const filteredRows = useMemo(() => {
           "& .MuiDataGrid-row": {
             minHeight: '60px !important',
             "&:hover": {
-              backgroundColor: (safeColors.primary?.[300] || '#e3f2fd') + "!important",
+              backgroundColor: theme.palette.mode === 'dark' 
+               ? 'rgba(255, 255, 255, 0.08) !important'  // Hover claro para modo oscuro
+               : 'rgba(0, 0, 0, 0.04) !important',       // Hover oscuro para modo claro
             },
           },
           // Responsividad

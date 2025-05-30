@@ -80,7 +80,13 @@ export default function Team() {
   }, [rows, showInactive, isSearching, searchTerm]);
 
   // Manejo seguro de colores con fallbacks
-  const safeColors = colors || {};
+  const safeColors = colors || {
+    primary: { 400: '#f5f5f5', 300: '#424242' },
+    greenAccent: { 300: '#4caf50', 200: '#4caf50' },
+    blueAccent: { 700: '#1976d2' },
+    grey: { 100: '#f5f5f5', 100: '#ffffff' }
+  };
+
 
   // Verificar autenticación y permisos al montar
   useEffect(() => {
@@ -590,7 +596,9 @@ export default function Team() {
           "& .MuiDataGrid-row": {
             minHeight: '60px !important',
             "&:hover": {
-              backgroundColor: (safeColors.primary?.[300] || '#e3f2fd') + "!important",
+              backgroundColor: theme.palette.mode === 'dark' 
+                 ? 'rgba(255, 255, 255, 0.08) !important'  // Hover claro para modo oscuro
+                 : 'rgba(0, 0, 0, 0.04) !important',       // Hover oscuro para modo claro
             },
           },
         }}
@@ -611,24 +619,34 @@ export default function Team() {
           disableRowSelectionOnClick
           hideFooterSelectedRowCount
         />
-      </Box>
-
-      {/* DIÁLOGO PARA CONFIRMAR ELIMINACIÓN */}
-      <Dialog open={deleteDialog.open} onClose={() => setDeleteDialog({ ...deleteDialog, open: false })}>
-        <DialogTitle>Confirmar Eliminación</DialogTitle>
+      </Box>      {/* Dialog de confirmación de eliminación */}
+      <Dialog
+        open={deleteDialog.open}
+        onClose={() => setDeleteDialog({ ...deleteDialog, open: false })}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Confirmar Eliminación
+        </DialogTitle>
         <DialogContent>
           <Typography>
-            ¿Estás seguro de que deseas eliminar el usuario <strong>{deleteDialog.userName}</strong>?
+            ¿Estás seguro de que deseas eliminar el usuario "{deleteDialog.userName}"?
           </Typography>
-          <Typography variant="body2" sx={{ mt: 1, color: 'error.main' }}>
+          <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
             Esta acción no se puede deshacer.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialog({ ...deleteDialog, open: false })}>
+          <Button onClick={() => setDeleteDialog({ ...deleteDialog, open: false })} color="inherit">
             Cancelar
           </Button>
-          <Button onClick={handleDeleteConfirm} variant="contained" color="error">
+          <Button 
+            onClick={handleDeleteConfirm} 
+            variant="contained" 
+            color="error"
+            autoFocus
+          >
             Eliminar
           </Button>
         </DialogActions>

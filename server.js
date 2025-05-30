@@ -1,4 +1,3 @@
-// server.js
 const express          = require('express');
 const bodyParser       = require('body-parser');
 const path             = require('path');
@@ -7,6 +6,9 @@ const authRoutes       = require('./app/routes/authRoutes');
 const userRoutes       = require('./app/routes/userRoutes');
 const avatarRoutes     = require('./app/routes/avatarRoutes');
 const productsRoutes   = require('./app/routes/productsRoutes');
+const dashboardRoutes  = require('./app/routes/dashboardRoutes'); // 👈 Debe estar
+const categoryRoutes   = require('./app/routes/categoryRoutes');
+const locationRoutes   = require('./app/routes/locationRoutes');
 
 const app  = express();
 const port = process.env.PORT || 3000;
@@ -18,16 +20,15 @@ app.use(bodyParser.json());
 const uploadDir = path.join(__dirname, 'public', 'uploads');
 app.use('/uploads', express.static(uploadDir));
 
-// 3) Montar routers - ORDEN CORREGIDO
-app.use('/',            authRoutes);       // /login
-
-// Rutas API principales (con middleware auth)
-app.use('/api/users',   userRoutes);       // /api/users, /api/users/:id (con auth)
-app.use('/api/history', historyRoutes);    // /api/history (con auth + admin)
-app.use('/api/products', productsRoutes);  // /api/products (con auth)
-
-// Rutas específicas sin conflicto
-app.use('/users',       avatarRoutes);     // /users/:id/avatar (upload de avatares)
+// 3) Montar routers
+app.use('/',            authRoutes);
+app.use('/api/users',   userRoutes);
+app.use('/api/history', historyRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/dashboard', dashboardRoutes); // 👈 Debe estar
+app.use('/api/categories', categoryRoutes);
+app.use('/api/locations', locationRoutes);
+app.use('/users',       avatarRoutes);
 
 // 4) Servir React build
 app.use(express.static(path.join(__dirname, 'build')));

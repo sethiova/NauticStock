@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Button, TextField, useTheme, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
@@ -36,29 +36,9 @@ const initialValues = {
   status:       0 // Activo por defecto
 };
 
-// Opciones predefinidas
-const categoryOptions = [
-  "Oficina",
-  "Ferretería", 
-  "Limpieza",
-  "Electrónica",
-  "Mantenimiento",
-  "Seguridad",
-  "Herramientas",
-  "Consumibles"
-];
-
-const locationOptions = [
-  "Almacén Principal A-1",
-  "Almacén Principal A-2", 
-  "Almacén Principal B-1",
-  "Almacén Principal B-2",
-  "Almacén Oficina A-1",
-  "Almacén Oficina A-2",
-  "Depósito Temporal",
-  "Área de Trabajo",
-  "Laboratorio"
-];
+// Opciones predefinidas - Estas ahora se cargan dinámicamente
+const categoryOptions = [];
+const locationOptions = [];
 
 export default function CreateProduct() {
   const isNonMobile = useMediaQuery("(min-width:600px)");
@@ -66,11 +46,65 @@ export default function CreateProduct() {
   const colors      = Token(theme.palette.mode);
   const navigate    = useNavigate();
 
+  // Estados para categorías y ubicaciones
+  const [categories, setCategories] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
+  // Cargar categorías y ubicaciones al montar el componente
+  useEffect(() => {    const fetchData = async () => {
+      try {
+        console.log('🚀 Iniciando carga de categorías y ubicaciones...');
+        
+        const [categoriesResponse, locationsResponse] = await Promise.all([
+          api.get("/api/categories"),
+          api.get("/api/locations")
+        ]);
+        
+        console.log('📦 Respuesta categorías completa:', categoriesResponse);
+        console.log('📦 Respuesta ubicaciones completa:', locationsResponse);
+        console.log('📦 Datos categorías:', categoriesResponse.data);
+        console.log('📦 Datos ubicaciones:', locationsResponse.data);
+        
+        // Asegurar que siempre sean arrays
+        const categoriesData = Array.isArray(categoriesResponse.data) 
+          ? categoriesResponse.data 
+          : categoriesResponse.data?.data || [];
+        
+        const locationsData = Array.isArray(locationsResponse.data) 
+          ? locationsResponse.data 
+          : locationsResponse.data?.data || [];
+        
+        setCategories(categoriesData);
+        setLocations(locationsData);
+        
+        console.log('Categorías cargadas:', categoriesData.length);
+        console.log('Ubicaciones cargadas:', locationsData.length);
+        console.log('Categorías data:', categoriesData);
+        console.log('Ubicaciones data:', locationsData);
+      } catch (error) {
+        console.error('❌ Error cargando datos:', error);
+        console.error('❌ Error response:', error.response);
+        setSnackbar({
+          open: true,
+          message: "Error al cargar categorías y ubicaciones",
+          severity: "error",
+        });
+        // Asegurar arrays vacíos en caso de error
+        setCategories([]);
+        setLocations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleFormSubmit = async (values, { resetForm }) => {
     try {
@@ -113,8 +147,18 @@ export default function CreateProduct() {
           severity:"error",
         });
       }
-    }
-  };
+    }  };
+
+  if (loading) {
+    return (
+      <Box m="20px">
+        <Header
+          title="CREAR PRODUCTO"
+          subtitle="Cargando formulario..."
+        />
+      </Box>
+    );
+  }
 
   return (
     <Box m="20px">
@@ -186,9 +230,7 @@ export default function CreateProduct() {
                 error={!!touched.brand && !!errors.brand}
                 helperText={touched.brand && errors.brand}
                 sx={{ gridColumn: "span 2" }}
-              />
-
-              <FormControl 
+              />              <FormControl 
                 fullWidth 
                 variant="filled" 
                 error={!!touched.category && !!errors.category}
@@ -202,9 +244,11 @@ export default function CreateProduct() {
                   value={values.category}
                   onBlur={handleBlur}
                   onChange={handleChange}
-                >
-                  {categoryOptions.map((cat) => (
-                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                  disabled={loading}
+                >                  {Array.isArray(categories) && categories.map((category) => (
+                    <MenuItem key={category.id} value={category.name}>
+                      {category.name}
+                    </MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -270,8 +314,7 @@ export default function CreateProduct() {
                 sx={{ gridColumn: "span 1" }}
               />
 
-              {/* Fila 4: Ubicación y Proveedor */}
-              <FormControl 
+              {/* Fila 4: Ubicación y Proveedor */}              <FormControl 
                 fullWidth 
                 variant="filled" 
                 error={!!touched.location && !!errors.location}
@@ -285,9 +328,11 @@ export default function CreateProduct() {
                   value={values.location}
                   onBlur={handleBlur}
                   onChange={handleChange}
-                >
-                  {locationOptions.map((loc) => (
-                    <MenuItem key={loc} value={loc}>{loc}</MenuItem>
+                  disabled={loading}
+                >                  {Array.isArray(locations) && locations.map((location) => (
+                    <MenuItem key={location.id} value={location.name}>
+                      {location.name}
+                    </MenuItem>
                   ))}
                 </Select>
               </FormControl>

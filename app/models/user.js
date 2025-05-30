@@ -2,9 +2,9 @@ const Model = require("./Model");
 const bcrypt = require("bcryptjs");
 
 class User extends Model {
-  constructor() {
-    super(); // 👈 Llamar constructor padre
-    this.tableName = "user"; // 👈 DEFINIR ANTES de usar DB
+ constructor() {
+    super();
+    this.tableName = "user";
     this.fillable = [
       "name",
       "password",
@@ -12,12 +12,10 @@ class User extends Model {
       "email",
       "ranks",
       "status",
-      "roleId",
+      "roleId", // Ya está incluido
     ];
     
-    // 👇 INICIALIZAR DB DESPUÉS de definir tableName
     this.initializeDB();
-    
     console.log('✅ User model inicializado correctamente');
   }
 

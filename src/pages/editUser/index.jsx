@@ -7,7 +7,11 @@ import {
   useTheme, 
   Alert,
   CircularProgress,
-  Typography 
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
@@ -20,6 +24,7 @@ const schema = yup.object().shape({
   account: yup.string().required("Requerido"),
   email: yup.string().email("Inválido").required("Requerido"),
   ranks: yup.string().required("Requerido"),
+  roleId: yup.number().required("Rol es requerido"),
   password: yup.string().min(8, "Mínimo 8 caracteres"),
   confirm_password: yup
     .string()
@@ -33,10 +38,17 @@ const EditUser = () => {
   const colors = Token(theme.palette.mode);
   
   const [initVals, setInitVals] = useState(null);
-  const [originalData, setOriginalData] = useState(null); // 👈 NUEVO: Datos originales
+  const [originalData, setOriginalData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [submitting, setSubmitting] = useState(false); // 👈 NUEVO: Estado de envío
+  const [submitting, setSubmitting] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null); // Para verificar permisos
+
+  useEffect(() => {
+    // Verificar usuario actual
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    setCurrentUser(user);
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -44,29 +56,51 @@ const EditUser = () => {
         setLoading(true);
         setError(null);
         
-        // 👇 CORREGIR: Usar /api/users/
-        const { data } = await api.get(`/api/users/${id}`);
+        const response = await api.get(`/api/users/${id}`);
         
-        const userData = {
-          name: data.name || '',
-          account: data.account || '',
-          email: data.email || '',
-          ranks: data.ranks || '',
+        console.log('📡 Respuesta completa:', response);
+        console.log('📡 response.data:', response.data);
+        
+        let userData = null;
+        
+        if (response.data && response.data.data) {
+          userData = response.data.data;
+          console.log('✅ Estructura: data.data');
+        } else if (response.data && response.data.id) {
+          userData = response.data;
+          console.log('✅ Estructura: datos directos');
+        }
+        
+        if (!userData) {
+          throw new Error('No se pudieron obtener los datos del usuario');
+        }
+        
+        console.log('📋 Datos del usuario:', userData);
+        
+        const formData = {
+          name: userData.name || '',
+          account: userData.account || '',
+          email: userData.email || '',
+          ranks: userData.ranks || '',
+          roleId: userData.roleId || 2, // Default a capturista
           password: "",
           confirm_password: ""
         };
         
-        setInitVals(userData);
-        // 👇 NUEVO: Guardar datos originales para comparación
+        setInitVals(formData);
+        
+        // Guardar datos originales para comparación
         setOriginalData({
-          name: data.name || '',
-          account: data.account || '',
-          email: data.email || '',
-          ranks: data.ranks || ''
+          name: userData.name || '',
+          account: userData.account || '',
+          email: userData.email || '',
+          ranks: userData.ranks || '',
+          roleId: userData.roleId || 2
         });
         
       } catch (err) {
-        console.error('Error cargando usuario:', err);
+        console.error('❌ Error completo:', err);
+        console.error('❌ Error response:', err.response);
         setError(err.response?.data?.error || 'Error al cargar usuario');
       } finally {
         setLoading(false);
@@ -76,31 +110,43 @@ const EditUser = () => {
     fetchUser();
   }, [id]);
 
-  // 👇 NUEVA FUNCIÓN: Verificar si hay cambios
+  // Verificar si hay cambios
   const hasChanges = (values) => {
     if (!originalData) return false;
     
-    // Verificar cambios en campos básicos
     const basicFieldsChanged = 
       values.name !== originalData.name ||
       values.account !== originalData.account ||
       values.email !== originalData.email ||
-      values.ranks !== originalData.ranks;
+      values.ranks !== originalData.ranks ||
+      parseInt(values.roleId) !== parseInt(originalData.roleId); // Comparar rol
     
-    // Verificar si se está cambiando la contraseña
     const passwordChanged = values.password && values.password.length > 0;
     
     return basicFieldsChanged || passwordChanged;
   };
 
   const handleSubmit = async (values) => {
-    // 👇 NUEVO: Validar que hay cambios
+    // Validar permisos para cambiar rol
+    if (parseInt(values.roleId) !== parseInt(originalData.roleId)) {
+      if (!currentUser || currentUser.roleId !== 1) {
+        setError("Solo los administradores pueden cambiar roles de usuario");
+        return;
+      }
+      
+      // Verificar que no se esté auto-degradando
+      if (parseInt(id) === currentUser.id && parseInt(values.roleId) !== 1) {
+        setError("No puedes cambiar tu propio rol de administrador");
+        return;
+      }
+    }
+
     if (!hasChanges(values)) {
       setError("No se han realizado cambios para guardar");
       return;
     }
 
-    // 👇 NUEVO: Validar contraseñas si se están cambiando
+    // Validar contraseñas si se están cambiando
     if (values.password || values.confirm_password) {
       if (!values.password) {
         setError("Debes ingresar una nueva contraseña");
@@ -120,22 +166,24 @@ const EditUser = () => {
       setSubmitting(true);
       setError(null);
 
-      // 👇 PREPARAR PAYLOAD SOLO CON CAMPOS MODIFICADOS
+      // Preparar payload solo con campos modificados
       const payload = {};
       
-      // Solo incluir campos que cambiaron
       if (values.name !== originalData.name) payload.name = values.name;
       if (values.account !== originalData.account) payload.account = values.account;
       if (values.email !== originalData.email) payload.email = values.email;
       if (values.ranks !== originalData.ranks) payload.ranks = values.ranks;
+      if (parseInt(values.roleId) !== parseInt(originalData.roleId)) payload.roleId = parseInt(values.roleId);
       
-      // Solo incluir contraseña si se está cambiando
       if (values.password) payload.password = values.password;
 
       console.log('Enviando payload:', payload);
 
-      // 👇 CORREGIR: Usar /api/users/
       await api.put(`/api/users/${id}`, payload);
+
+      // Disparar eventos para sincronización
+      window.dispatchEvent(new Event("userUpdated"));
+      localStorage.setItem('userChanged', Date.now().toString());
       
       // Redirigir con éxito
       navigate("/team", { 
@@ -153,7 +201,20 @@ const EditUser = () => {
     }
   };
 
-  // 👇 PANTALLA DE CARGA
+  // Obtener el nombre del rol
+  const getRoleName = (roleId) => {
+    switch(parseInt(roleId)) {
+      case 1: return "Administrador";
+      case 2: return "Capturista";
+      case 3: return "Consultor";
+      default: return "Desconocido";
+    }
+  };
+
+  // Verificar si es admin
+  const isAdmin = currentUser?.roleId === 1;
+
+  // Pantalla de carga
   if (loading) {
     return (
       <Box m="20px" display="flex" justifyContent="center" alignItems="center" height="50vh">
@@ -163,7 +224,7 @@ const EditUser = () => {
     );
   }
 
-  // 👇 PANTALLA DE ERROR
+  // Pantalla de error
   if (error && !initVals) {
     return (
       <Box m="20px">
@@ -198,7 +259,7 @@ const EditUser = () => {
         m="40px auto"
         p="30px"
         borderRadius="12px"
-        maxWidth="600px"
+        maxWidth="800px"
         boxShadow={4}
         sx={{ backgroundColor: colors.primary[400] }}
       >
@@ -208,7 +269,7 @@ const EditUser = () => {
           onSubmit={handleSubmit}
           enableReinitialize
         >
-          {({ values, errors, touched, handleBlur, handleChange, handleSubmit, dirty }) => (
+          {({ values, errors, touched, handleBlur, handleChange, handleSubmit }) => (
             <form onSubmit={handleSubmit}>
               <Box 
                 display="grid" 
@@ -264,7 +325,52 @@ const EditUser = () => {
                   helperText={touched.ranks && errors.ranks}
                 />
 
-                {/* 👇 SECCIÓN DE CONTRASEÑA MEJORADA */}
+                {/* 👇 NUEVO: Campo de Rol */}
+                <FormControl 
+                  fullWidth 
+                  variant="filled" 
+                  error={!!touched.roleId && !!errors.roleId}
+                  sx={{ gridColumn: "span 6" }}
+                >
+                  <InputLabel id="role-label">Rol del Usuario</InputLabel>
+                  <Select
+                    labelId="role-label"
+                    label="Rol del Usuario"
+                    name="roleId"
+                    value={values.roleId}
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    disabled={!isAdmin || (parseInt(id) === currentUser?.id)} // Deshabilitar si no es admin o se edita a sí mismo
+                  >
+                    <MenuItem value={1}>Administrador</MenuItem>
+                    <MenuItem value={2}>Capturista</MenuItem>
+                    <MenuItem value={3}>Consultor</MenuItem>
+                  </Select>
+                  {touched.roleId && errors.roleId && (
+                    <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+                      {errors.roleId}
+                    </Typography>
+                  )}
+                  {(!isAdmin || parseInt(id) === currentUser?.id) && (
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                      {!isAdmin ? "Solo administradores pueden cambiar roles" : "No puedes cambiar tu propio rol"}
+                    </Typography>
+                  )}
+                </FormControl>
+
+                {/* Información adicional */}
+                <Box sx={{ gridColumn: "span 6" }}>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Rol actual:</strong> {getRoleName(originalData?.roleId)}
+                  </Typography>
+                  {parseInt(values.roleId) !== parseInt(originalData?.roleId) && (
+                    <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
+                      ⚠️ <strong>Cambiando a:</strong> {getRoleName(values.roleId)}
+                    </Typography>
+                  )}
+                </Box>
+
+                {/* Sección de contraseña */}
                 <Box sx={{ gridColumn: "span 12", mt: 2 }}>
                   <Typography variant="h6" gutterBottom>
                     Cambiar Contraseña (Opcional)
@@ -301,7 +407,7 @@ const EditUser = () => {
                 />
               </Box>
 
-              {/* 👇 BOTONES MEJORADOS */}
+              {/* Botones */}
               <Box display="flex" justifyContent="space-between" alignItems="center" mt="30px">
                 <Typography variant="body2" color="text.secondary">
                   {hasChanges(values) ? 
@@ -326,7 +432,7 @@ const EditUser = () => {
                     type="submit"
                     color="secondary"
                     variant="contained"
-                    disabled={!hasChanges(values) || submitting} // 👈 NUEVO: Deshabilitar si no hay cambios
+                    disabled={!hasChanges(values) || submitting}
                     sx={{ px: 4, py: 1.5 }}
                   >
                     {submitting ? (

@@ -26,9 +26,7 @@ class DB {
       console.error('❌ Database connection failed:', err);
       throw err;
     }
-  }
-
-  // 👇 MÉTODO MEJORADO: executeQuery -> execute (compatible con History.js)
+  }  // 👇 MÉTODO MEJORADO: executeQuery -> execute (compatible con History.js)
   async execute(sql, params = []) {
     try {
       console.log('📊 Executing query:', sql);
@@ -37,9 +35,16 @@ class DB {
       }
 
       const conn = await this.connect();
-      const [result] = await conn.execute(sql, params);
+      const [result, fields] = await conn.execute(sql, params);
       
-      console.log('✅ Query executed successfully, rows:', result.length || result.affectedRows || 0);
+      console.log('✅ Query executed successfully');
+      console.log('✅ Raw result type:', typeof result);
+      console.log('✅ Raw result is array:', Array.isArray(result));
+      console.log('✅ Raw result length:', result?.length);
+      console.log('✅ Raw result first item:', result?.[0]);
+      console.log('✅ Fields info:', fields?.length, 'fields');
+      
+      // 🎯 DEVOLVER DIRECTAMENTE EL ARRAY DE RESULTADOS
       return result;
       
     } catch (error) {
